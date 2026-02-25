@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Doctor Strange - Stop Timer</title>
+
+<style>
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #e9e9e9;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+/* Carte centrale */
+.card {
+    background: white;
+    width: 90%;
+    max-width: 500px;
+    border-radius: 20px;
+    padding: 40px 30px;
+    text-align: center;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+}
+
+/* Logo rond */
+.logo {
+    width: 200px;
+    height: 200px;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 6px solid #b00000;
+    margin-bottom: 20px;
+}
+
+/* Titres */
+h1 {
+    color: #b00000;
+    margin: 10px 0;
+}
+
+p {
+    margin: 8px 0;
+    font-size: 18px;
+    color: #333;
+}
+
+/* Bouton */
+button {
+    margin-top: 25px;
+    padding: 15px 30px;
+    font-size: 18px;
+    border: none;
+    border-radius: 8px;
+    background: #b00000;
+    color: white;
+    cursor: pointer;
+    transition: 0.2s ease;
+}
+
+button:hover {
+    background: #8c0000;
+}
+
+/* Jeu */
+#gameScreen {
+    display: none;
+    text-align: center;
+}
+
+#targetDisplay {
+    font-size: 22px;
+    margin-bottom: 20px;
+}
+
+#gameArea {
+    font-size: 50px;
+    margin: 30px 0;
+    user-select: none;
+}
+
+.small {
+    font-size: 18px;
+    margin-top: 10px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="card">
+
+    <!-- PAGE ACCUEIL -->
+    <div id="homeScreen">
+        <img src="AGR-logo.png" class="logo" alt="ArtVengers Logo">
+        <h1>AGR</h1>
+        <p>Sauras-tu stopper le temps à temps ?</p>
+        <p><strong>1 chrono cible qui change : autant d'essais que tu veux !</strong></p>
+        <button onclick="startGame()">Art'vengers, rassemblement !</button>
+    </div>
+
+    <!-- PAGE JEU -->
+    <div id="gameScreen">
+        <div id="targetDisplay"></div>
+        <div id="gameArea">Tap pour commencer</div>
+        <div class="small" id="result"></div>
+        <div class="small">Meilleur score : <span id="bestScore" >--</span></div>
+        <p> Envoie ton score aux AGR sur Insta : @liste_bda_artvengers ! <br> <br> Le meilleur temps de la journée aura une surprise...</p>
+        <button id="restartBtn" style="display:none;" onclick="resetGame()">Recommencer</button>
+    </div>
+
+</div>
+
+<script>
+let targetTime = 0;
+let startTime = 0;
+let interval = null;
+let running = false;
+
+const homeScreen = document.getElementById("homeScreen");
+const gameScreen = document.getElementById("gameScreen");
+const gameArea = document.getElementById("gameArea");
+const result = document.getElementById("result");
+const targetDisplay = document.getElementById("targetDisplay");
+const bestScoreDisplay = document.getElementById("bestScore");
+const restartBtn = document.getElementById("restartBtn");
+
+function generateTarget() {
+    return Math.round((Math.random() * 4 + 3) * 10) / 10;
+}
+
+function startGame() {
+    homeScreen.style.display = "none";
+    gameScreen.style.display = "block";
+    resetGame();
+}
+
+function resetGame() {
+    targetTime = generateTarget();
+    targetDisplay.textContent = "Temps cible : " + targetTime.toFixed(1) + " secondes";
+    gameArea.textContent = "Tap pour commencer";
+    result.textContent = "";
+    restartBtn.style.display = "none";
+    running = false;
+    clearInterval(interval);
+    loadBestScore();
+}
+
+function loadBestScore() {
+    const best = localStorage.getItem("bestScore");
+    if (best !== null) {
+        bestScoreDisplay.textContent = best + " s";
+    } else {
+        bestScoreDisplay.textContent = "--";
+    }
+}
+
+function updateBestScore(diff) {
+    const absDiff = Math.abs(diff).toFixed(3);
+    const best = localStorage.getItem("bestScore");
+
+    if (best === null || absDiff < parseFloat(best)) {
+        localStorage.setItem("bestScore", absDiff);
+        bestScoreDisplay.textContent = absDiff + " s";
+    }
+}
+
+gameArea.addEventListener("click", () => {
+    if (!running) {
+        running = true;
+        startTime = Date.now();
+        interval = setInterval(() => {
+            let current = ((Date.now() - startTime) / 1000).toFixed(3);
+            gameArea.textContent = current + " s";
+        }, 10);
+    } else {
+        running = false;
+        clearInterval(interval);
+
+        let rawTime = (Date.now() - startTime) / 1000;
+
+        // On arrondit UNE FOIS et on garde cette valeur
+        let finalTime = Number(rawTime.toFixed(3));
+
+        // On met à jour l'affichage avec cette valeur exacte
+        gameArea.textContent = finalTime.toFixed(3) + " s";
+
+        // Calcul basé sur EXACTEMENT ce qui est affiché
+        let diff = (finalTime - targetTime).toFixed(3);
+
+        result.textContent = "Écart : " + diff + " s";
+        updateBestScore(diff);
+
+        restartBtn.style.display = "inline-block";
+    }
+});
+
+loadBestScore();
+</script>
+
+</body>
+</html>
