@@ -87,6 +87,28 @@ button:hover {
     font-size: 18px;
     margin-top: 10px;
 }
+
+#pushButton {
+    width: 200px;
+    cursor: pointer;
+    transition: transform 0.08s ease, filter 0.08s ease;
+}
+
+/* effet enfoncé */
+#pushButton:active {
+    transform: translateY(8px) scale(0.97);
+    filter: brightness(0.85);
+}
+
+#pushButton {
+    box-shadow: 0 10px 0 #999;
+}
+
+#pushButton:active {
+    transform: translateY(10px);
+    box-shadow: 0 0 0 #999;
+}
+
 </style>
 </head>
 
@@ -106,7 +128,7 @@ button:hover {
     <!-- PAGE JEU -->
     <div id="gameScreen">
         <div id="targetDisplay"></div>
-        <div id="gameArea">Tap pour commencer</div>
+        <div id="gameArea"> <img src="push-button.png" id="pushButton" alt="Push Button"></div>
         <div class="small" id="result"></div>
         <div class="small">Meilleur score de la journée : <span id="bestScore" >--</span></div>
         <p> Envoie ton score aux AGR sur Insta : @liste_bda_artvengers si tu viens d'obtenir le meilleur de la journée ! <br> <br> Le meilleur temps de la journée aura une surprise...</p>
@@ -142,8 +164,7 @@ function startGame() {
 function resetGame() {
     targetTime = generateTarget();
     targetDisplay.textContent = "Temps cible : " + targetTime.toFixed(1) + " secondes";
-    gameArea.textContent = "Tap pour commencer";
-    result.textContent = "";
+    result.textContent = "Appuie sur le bouton pour commencer";
     restartBtn.style.display = "none";
     running = false;
     clearInterval(interval);
@@ -169,34 +190,34 @@ function updateBestScore(diff) {
     }
 }
 
-gameArea.addEventListener("click", () => {
+const pushButton = document.getElementById("pushButton");
+
+pushButton.addEventListener("click", () => {
     if (!running) {
         running = true;
         startTime = Date.now();
         interval = setInterval(() => {
             let current = ((Date.now() - startTime) / 1000).toFixed(3);
-            gameArea.textContent = current + " s";
+            document.getElementById("targetDisplay").textContent =
+              "Temps cible : " + targetTime.toFixed(1) + " secondes";
+
+            document.getElementById("result").textContent =
+              current + " s";
         }, 10);
     } else {
-        running = false;
-        clearInterval(interval);
+    running = false;
+    clearInterval(interval);
 
-        let rawTime = (Date.now() - startTime) / 1000;
+    let rawTime = (Date.now() - startTime) / 1000;
+    let finalTime = Number(rawTime.toFixed(3));
+    let diff = (finalTime - targetTime).toFixed(3);
 
-        // On arrondit UNE FOIS et on garde cette valeur
-        let finalTime = Number(rawTime.toFixed(3));
+    result.textContent =
+        finalTime.toFixed(3) + " s | Écart : " + diff + " s";
 
-        // On met à jour l'affichage avec cette valeur exacte
-        gameArea.textContent = finalTime.toFixed(3) + " s";
-
-        // Calcul basé sur EXACTEMENT ce qui est affiché
-        let diff = (finalTime - targetTime).toFixed(3);
-
-        result.textContent = "Écart : " + diff + " s";
-        updateBestScore(diff);
-
-        restartBtn.style.display = "inline-block";
-    }
+    updateBestScore(diff);
+    restartBtn.style.display = "inline-block";
+}
 });
 
 loadBestScore();
