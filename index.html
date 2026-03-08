@@ -92,6 +92,7 @@ button:hover {
     width: 200px;
     cursor: pointer;
     transition: transform 0.08s ease, filter 0.08s ease;
+    -webkit-tap-highlight-color: transparent;
 }
 
 /* effet enfoncé */
@@ -191,6 +192,14 @@ function updateBestScore(diff) {
 }
 
 const pushButton = document.getElementById("pushButton");
+
+pushButton.addEventListener("touchstart", () => {
+    pushButton.style.transform = "translateY(10px)";
+});
+
+pushButton.addEventListener("touchend", () => {
+    pushButton.style.transform = "translateY(0)";
+});
 
 pushButton.addEventListener("click", () => {
     if (!running) {
